@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
+import { FaSearch } from 'react-icons/fa';
 import SearchBar from './components/SearchBar';
 import WeatherCard from './components/WeatherCard';
 import Forecast from './components/Forecast';
@@ -18,7 +20,6 @@ function App() {
   const [recentSearches, setRecentSearches] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
 
-  // Toggle dark/light theme by updating html element class
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -27,25 +28,20 @@ function App() {
     }
   }, [darkMode]);
 
-  
-  // Function to fetch current weather and forecast data from the OpenWeatherMap API
   const fetchWeather = async (cityName) => {
     setLoading(true);
     setError('');
     try {
-      // Fetch current weather data
       const weatherResponse = await axios.get(
         `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&appid=${API_KEY}&units=metric`
       );
       setWeatherData(weatherResponse.data);
 
-      // Save to recent searches (unique, last 5)
       setRecentSearches((prev) => {
         const updated = [cityName, ...prev.filter(item => item.toLowerCase() !== cityName.toLowerCase())];
         return updated.slice(0, 5);
       });
 
-      // Fetch 5-day forecast data
       const forecastResponse = await axios.get(
         `https://api.openweathermap.org/data/2.5/forecast?q=${cityName}&appid=${API_KEY}&units=metric`
       );
@@ -59,51 +55,92 @@ function App() {
     }
   };
 
-  // Handle search submission
   const handleSearch = (searchCity) => {
     setCity(searchCity);
     fetchWeather(searchCity);
   };
 
-  // Refresh current city weather data
   const handleRefresh = () => {
     if (city) {
       fetchWeather(city);
     }
   };
 
+  const toggleDarkMode = () => {
+    setDarkMode((prevMode) => !prevMode);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors">
+    <motion.div
+      className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-200 to-indigo-300 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
       <div className="container mx-auto py-8 px-4">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-3xl font-bold">Weather Dashboard</h1>
-          <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-        </div>
-        
-        <SearchBar onSearch={handleSearch} />
-        
+        <motion.div
+          className="flex justify-between items-center mb-6"
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-4xl font-extrabold tracking-wide">
+            Clima
+          </h1>
+          {/* Use ThemeToggle Component */}
+
+      <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+        </motion.div>
+
+        <SearchBar
+          onSearch={handleSearch}
+          placeholder="Search for a city..."
+          icon={<FaSearch className="text-gray-500" />}
+        />
+
         {loading && (
-          <div className="flex justify-center items-center my-4">
+          <motion.div
+            className="flex justify-center items-center my-6"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
             <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16"></div>
-          </div>
+          </motion.div>
         )}
-        
+
         {error && (
-          <div className="bg-red-200 text-red-800 p-4 rounded my-4">
+          <motion.div
+            className="bg-red-500 text-white p-4 rounded-lg shadow-lg my-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
             {error}
-          </div>
+          </motion.div>
         )}
 
         {weatherData && (
-          <>
-            <WeatherCard weatherData={weatherData} onRefresh={handleRefresh} />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <WeatherCard
+              weatherData={weatherData}
+              onRefresh={handleRefresh}
+            />
             {forecastData && <Forecast forecastData={forecastData} />}
-          </>
+          </motion.div>
         )}
 
-        <RecentSearches searches={recentSearches} onSelect={handleSearch} />
+        <RecentSearches
+          searches={recentSearches}
+          onSelect={handleSearch}
+          icon={<FaSearch className="text-gray-400" />}
+        />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
